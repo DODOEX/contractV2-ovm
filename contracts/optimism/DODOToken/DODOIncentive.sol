@@ -49,7 +49,7 @@ contract DODOIncentive is InitializableOwnable {
     event SetDefaultRate(uint256 defaultRate);
     event Incentive(address user, uint256 reward);
 
-    constructor(address _dodoToken) public {
+    constructor(address _dodoToken) {
         _DODO_TOKEN_ = _dodoToken;
     }
 

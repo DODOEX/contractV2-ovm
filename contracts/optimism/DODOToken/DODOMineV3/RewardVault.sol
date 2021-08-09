@@ -31,7 +31,7 @@ contract RewardVault is Ownable {
     // ============ Event =============
     event DepositReward(uint256 totalReward, uint256 inputReward, uint256 rewardReserve);
 
-    constructor(address _rewardToken) public {
+    constructor(address _rewardToken) {
         _REWARD_TOKEN_ = _rewardToken;
     }
 

@@ -56,7 +56,7 @@ contract DPPFactory is InitializableOwnable {
         address defaultMaintainer,
         address defaultMtFeeRateModel,
         address dodoApproveProxy
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _DPP_TEMPLATE_ = dppTemplate;
         _DPP_ADMIN_TEMPLATE_ = dppAdminTemplate;

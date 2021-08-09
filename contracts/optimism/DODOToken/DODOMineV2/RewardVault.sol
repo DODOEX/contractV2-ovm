@@ -22,7 +22,7 @@ contract RewardVault is Ownable {
 
     address public rewardToken;
 
-    constructor(address _rewardToken) public {
+    constructor(address _rewardToken) {
         rewardToken = _rewardToken;
     }
 

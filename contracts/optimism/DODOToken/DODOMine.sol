@@ -64,7 +64,7 @@ contract DODOMine is Ownable {
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event Claim(address indexed user, uint256 amount);
 
-    constructor(address _dodoToken, uint256 _startBlock) public {
+    constructor(address _dodoToken, uint256 _startBlock) {
         dodoRewardVault = address(new DODORewardVault(_dodoToken));
         startBlock = _startBlock;
     }

@@ -48,7 +48,7 @@ contract DODOCpProxy is ReentrancyGuard {
         address cpFactory,
         address upCpFactory,
         address dodoApproveProxy
-    ) public {
+    ) {
         _WETH_ = weth;
         _CP_FACTORY_ = cpFactory;
         _UPCP_FACTORY_ = upCpFactory;

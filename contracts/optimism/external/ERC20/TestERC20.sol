@@ -26,7 +26,7 @@ contract TestERC20 {
         string memory _name,
         uint8 _decimals,
         string memory _symbol
-    ) public {
+    ) {
         name = _name;
         decimals = _decimals;
         symbol = _symbol;

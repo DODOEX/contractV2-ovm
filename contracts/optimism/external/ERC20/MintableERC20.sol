@@ -26,7 +26,7 @@ contract MintableERC20 {
         string memory _name,
         string memory _symbol,
         uint8 _decimals
-    ) public {
+    ) {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;

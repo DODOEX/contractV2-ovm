@@ -33,7 +33,7 @@ contract Ownable {
 
     // ============ Functions ============
 
-    constructor() internal {
+    constructor() {
         _OWNER_ = msg.sender;
         emit OwnershipTransferred(address(0), _OWNER_);
     }

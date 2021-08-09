@@ -23,7 +23,7 @@ contract DODORewardVault is Ownable {
 
     address public dodoToken;
 
-    constructor(address _dodoToken) public {
+    constructor(address _dodoToken) {
         dodoToken = _dodoToken;
     }
 

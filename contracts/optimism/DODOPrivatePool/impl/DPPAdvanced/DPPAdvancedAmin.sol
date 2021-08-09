@@ -74,7 +74,7 @@ contract DPPAdvancedAdmin is InitializableOwnable {
             msg.sender == _OWNER_ ||
                 (IDODOApproveProxy(_DODO_APPROVE_PROXY_).isAllowedProxy(msg.sender) &&
                     operator == _OPERATOR_),
-            "TUNEPARAMS FORBIDDEN！"
+            "TUNEPARAMS FORBIDDEN"
         );
         return
             IDPP(_DPP_).tuneParameters(
@@ -96,7 +96,7 @@ contract DPPAdvancedAdmin is InitializableOwnable {
             msg.sender == _OWNER_ ||
                 (IDODOApproveProxy(_DODO_APPROVE_PROXY_).isAllowedProxy(msg.sender) &&
                     operator == _OPERATOR_),
-            "TUNEPRICE FORBIDDEN！"
+            "TUNEPRICE FORBIDDEN"
         );
         return
             IDPP(_DPP_).tunePrice(
@@ -120,7 +120,7 @@ contract DPPAdvancedAdmin is InitializableOwnable {
             msg.sender == _OWNER_ ||
                 (IDODOApproveProxy(_DODO_APPROVE_PROXY_).isAllowedProxy(msg.sender) &&
                     operator == _OPERATOR_),
-            "RESET FORBIDDEN！"
+            "RESET FORBIDDEN"
         );
         return
             IDPP(_DPP_).reset(

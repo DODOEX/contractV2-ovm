@@ -48,7 +48,7 @@ contract DODODspProxy is ReentrancyGuard {
         address dspFactory,
         address payable weth,
         address dodoApproveProxy
-    ) public {
+    ) {
         _DSP_FACTORY_ = dspFactory;
         _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;

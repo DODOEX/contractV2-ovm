@@ -66,7 +66,7 @@ contract DODORouteProxy {
     constructor (
         address payable weth,
         address dodoApproveProxy
-    ) public {
+    ) {
         _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
     }

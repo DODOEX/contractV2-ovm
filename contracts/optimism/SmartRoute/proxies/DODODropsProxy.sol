@@ -44,7 +44,7 @@ contract DODODropsProxy is ReentrancyGuard {
 
     receive() external payable {}
 
-    constructor(address dodoApproveProxy) public {
+    constructor(address dodoApproveProxy) {
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
     }
 

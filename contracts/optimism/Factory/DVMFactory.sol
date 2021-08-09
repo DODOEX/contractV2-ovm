@@ -63,7 +63,7 @@ contract DVMFactory is InitializableOwnable {
         address dvmTemplate,
         address defaultMaintainer,
         address defaultMtFeeRateModel
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _DVM_TEMPLATE_ = dvmTemplate;
         _DEFAULT_MAINTAINER_ = defaultMaintainer;

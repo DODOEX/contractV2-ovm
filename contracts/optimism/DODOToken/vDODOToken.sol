@@ -98,7 +98,7 @@ contract vDODOToken is InitializableOwnable {
         address dodoToken,
         address dodoApproveProxy,
         address dodoTeam
-    ) public {
+    ) {
         _DOOD_GOV_ = dodoGov;
         _DODO_TOKEN_ = dodoToken;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;

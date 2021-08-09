@@ -39,7 +39,7 @@ contract NFTTokenFactory {
         address cloneFactory,
         address erc721Template,
         address erc1155Tempalte
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _ERC721_TEMPLATE_ = erc721Template;
         _ERC1155_TEMPLATE_ = erc1155Tempalte;

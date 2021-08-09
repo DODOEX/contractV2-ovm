@@ -57,7 +57,7 @@ contract DSPFactory is InitializableOwnable {
         address DSPTemplate,
         address defaultMaintainer,
         address defaultMtFeeRateModel
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _DSP_TEMPLATE_ = DSPTemplate;
         _DEFAULT_MAINTAINER_ = defaultMaintainer;

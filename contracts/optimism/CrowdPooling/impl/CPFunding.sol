@@ -19,6 +19,7 @@ import {PMMPricing} from "../../lib/PMMPricing.sol";
 import {IDODOCallee} from "../../intf/IDODOCallee.sol";
 
 contract CPFunding is CPStorage {
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
     // ============ Events ============

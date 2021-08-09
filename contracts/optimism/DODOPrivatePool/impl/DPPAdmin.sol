@@ -76,7 +76,7 @@ contract DPPAdmin is InitializableOwnable {
             msg.sender == _OWNER_ ||
                 (IDODOApproveProxy(_DODO_APPROVE_PROXY_).isAllowedProxy(msg.sender) &&
                     operator == _OPERATOR_),
-            "RESET FORBIDDEN！"
+            "RESET FORBIDDEN"
         );
         return
             IDPP(_DPP_).reset(

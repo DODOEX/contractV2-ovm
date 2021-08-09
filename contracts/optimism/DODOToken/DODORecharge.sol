@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity ^0.6.9;
+pragma solidity 0.7.6;
 
 import {SafeERC20} from "../lib/SafeERC20.sol";
 import {IERC20} from "../intf/IERC20.sol";
@@ -21,7 +21,7 @@ contract DODORecharge is InitializableOwnable {
 
     event DeductDODO(address user,uint256 _amount);
     
-    constructor(address dodoAddress, address dodoApproveProxy) public {
+    constructor(address dodoAddress, address dodoApproveProxy) {
         _DODO_TOKEN_ = dodoAddress;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
     }

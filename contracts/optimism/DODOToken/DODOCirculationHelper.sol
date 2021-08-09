@@ -25,7 +25,7 @@ contract DODOCirculationHelper is InitializableOwnable {
     uint256 public _MIN_PENALTY_RATIO_ = 5 * 10**16; // 5%
     uint256 public _MAX_PENALTY_RATIO_ = 15 * 10**16; // 15%
 
-    constructor(address vDodoToken,address dodoToken) public {
+    constructor(address vDodoToken,address dodoToken) {
         _VDODO_TOKEN_ = vDodoToken;
         _DODO_TOKEN_ = dodoToken;
     }

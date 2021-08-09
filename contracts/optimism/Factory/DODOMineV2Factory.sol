@@ -51,7 +51,7 @@ contract DODOMineV2Factory is InitializableOwnable {
         address cloneFactory,
         address mineTemplate,
         address defaultMaintainer
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _MINEV2_TEMPLATE_ = mineTemplate;
         _DEFAULT_MAINTAINER_ = defaultMaintainer;

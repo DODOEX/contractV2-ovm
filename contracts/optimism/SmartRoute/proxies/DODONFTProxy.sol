@@ -80,7 +80,7 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
         address fragTemplate,
         address dvmTemplate,
         address nftRegistry
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;

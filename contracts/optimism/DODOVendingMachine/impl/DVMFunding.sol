@@ -8,11 +8,13 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
+import {SafeMath} from "../../lib/SafeMath.sol";
 import {DVMVault} from "./DVMVault.sol";
 import {DecimalMath} from "../../lib/DecimalMath.sol";
 import {IDODOCallee} from "../../intf/IDODOCallee.sol";
 
 contract DVMFunding is DVMVault {
+    using SafeMath for uint256;
     // ============ Events ============
 
     event BuyShares(address to, uint256 increaseShares, uint256 totalShares);

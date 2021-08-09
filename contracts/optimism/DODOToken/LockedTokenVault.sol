@@ -65,7 +65,7 @@ contract LockedTokenVault is Ownable {
         uint256 _startReleaseTime,
         uint256 _releaseDuration,
         uint256 _cliffRate
-    ) public {
+    ) {
         _TOKEN_ = _token;
         _START_RELEASE_TIME_ = _startReleaseTime;
         _RELEASE_DURATION_ = _releaseDuration;

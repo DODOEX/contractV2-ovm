@@ -35,7 +35,7 @@ contract DODOToken {
 
     // ============ Functions ============
 
-    constructor() public {
+    constructor() {
         balances[msg.sender] = totalSupply;
     }
 

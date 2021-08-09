@@ -73,7 +73,7 @@ contract DPPOracleAdmin is InitializableOwnable {
             msg.sender == _OWNER_ ||
                 (IDODOApproveProxy(_DODO_APPROVE_PROXY_).isAllowedProxy(msg.sender) &&
                     operator == _OPERATOR_),
-            "TUNEPARAMS FORBIDDEN!"
+            "TUNEPARAMS FORBIDDEN"
         );
         return
             IDPPOracle(_DPP_).tuneParameters(
@@ -98,7 +98,7 @@ contract DPPOracleAdmin is InitializableOwnable {
             msg.sender == _OWNER_ ||
                 (IDODOApproveProxy(_DODO_APPROVE_PROXY_).isAllowedProxy(msg.sender) &&
                     operator == _OPERATOR_),
-            "RESET FORBIDDEN！"
+            "RESET FORBIDDEN"
         );
         return
             IDPPOracle(_DPP_).reset(

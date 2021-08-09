@@ -18,7 +18,7 @@ interface IDODOMidPrice {
 contract RandomGenerator is IRandomGenerator{
     address[] public pools;
 
-    constructor(address[] memory _pools) public {
+    constructor(address[] memory _pools) {
         for (uint256 i = 0; i < _pools.length; i++) {
             pools.push(_pools[i]);
         }

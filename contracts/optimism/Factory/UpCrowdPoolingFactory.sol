@@ -77,7 +77,7 @@ contract UpCrowdPoolingFactory is InitializableOwnable {
         address defaultMaintainer,
         address defaultMtFeeRateModel,
         address defaultPermissionManager
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _CP_TEMPLATE_ = cpTemplate;
         _DVM_FACTORY_ = dvmFactory;

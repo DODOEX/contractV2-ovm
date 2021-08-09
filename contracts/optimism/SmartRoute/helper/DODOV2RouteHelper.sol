@@ -31,7 +31,7 @@ contract DODOV2RouteHelper {
         uint256 pairVersion;
     }
 
-    constructor(address dvmFactory,address dppFactory,address dspFactory) public {
+    constructor(address dvmFactory,address dppFactory,address dspFactory) {
         _DVM_FACTORY_ = dvmFactory;
         _DPP_FACTORY_ = dppFactory;
         _DSP_FACTORY_ = dspFactory;

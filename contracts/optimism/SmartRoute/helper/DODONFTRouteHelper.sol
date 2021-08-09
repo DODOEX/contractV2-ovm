@@ -29,7 +29,7 @@ contract DODONFTRouteHelper {
         uint256 pairVersion;
     }
 
-    constructor(address nftRegistry) public {
+    constructor(address nftRegistry) {
         _NFT_REGISTER_ = nftRegistry;
     }
 

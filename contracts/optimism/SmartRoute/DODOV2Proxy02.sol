@@ -70,7 +70,7 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         address payable weth,
         address dodoApproveProxy,
         address dodoSellHelper
-    ) public {
+    ) {
         _DVM_FACTORY_ = dvmFactory;
         _DPP_FACTORY_ = dppFactory;
         _WETH_ = weth;

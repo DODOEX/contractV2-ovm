@@ -57,7 +57,7 @@ contract DODOMineV3Proxy is InitializableOwnable {
         address mineTemplate,
         address dodoApproveProxy,
         address dodoMineV3Registry
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _MINEV3_TEMPLATE_ = mineTemplate;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;

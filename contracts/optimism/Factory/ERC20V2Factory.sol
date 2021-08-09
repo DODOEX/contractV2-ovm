@@ -72,7 +72,7 @@ contract ERC20V2Factory is InitializableOwnable {
         address cloneFactory,
         address erc20Template,
         address customErc20Template
-    ) public {
+    ) {
         _CLONE_FACTORY_ = cloneFactory;
         _ERC20_TEMPLATE_ = erc20Template;
         _CUSTOM_ERC20_TEMPLATE_ = customErc20Template;

@@ -40,7 +40,7 @@ contract DODOApproveProxy is InitializableOwnable {
         _;
     }
 
-    constructor(address dodoApporve) public {
+    constructor(address dodoApporve) {
         _DODO_APPROVE_ = dodoApporve;
     }
 

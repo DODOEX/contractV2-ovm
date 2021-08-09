@@ -76,7 +76,7 @@ contract BaseMine is InitializableOwnable {
 
     function getRewardTokenById(uint256 i) external view returns (address) {
         require(i<rewardTokenInfos.length, "DODOMineV2: REWARD_ID_NOT_FOUND");
-        RewardTokenInfo memory rt = rewardTokenInfos[i];
+        RewardTokenInfo storage rt = rewardTokenInfos[i];
         return rt.rewardToken;
     }
 
@@ -145,19 +145,6 @@ contract BaseMine is InitializableOwnable {
         emit NewRewardToken(len, rewardToken);
     }
 
-    function removeRewardToken(address rewardToken) external onlyOwner {
-        uint256 len = rewardTokenInfos.length;
-        for (uint256 i = 0; i < len; i++) {
-            if (rewardToken == rewardTokenInfos[i].rewardToken) {
-                if(i != len - 1) {
-                    rewardTokenInfos[i] = rewardTokenInfos[len - 1];
-                }
-                rewardTokenInfos.pop();
-                emit RemoveRewardToken(rewardToken);
-                break;
-            }
-        }
-    }
 
     function setEndBlock(uint256 i, uint256 newEndBlock)
         external
@@ -223,7 +210,7 @@ contract BaseMine is InitializableOwnable {
     }
 
     function _getUnrewardBlockNum(uint256 i) internal view returns (uint256) {
-        RewardTokenInfo memory rt = rewardTokenInfos[i];
+        RewardTokenInfo storage rt = rewardTokenInfos[i];
         if (block.number < rt.startBlock || rt.lastRewardBlock > rt.endBlock) {
             return 0;
         }
@@ -233,7 +220,7 @@ contract BaseMine is InitializableOwnable {
     }
 
     function _getAccRewardPerShare(uint256 i) internal view returns (uint256) {
-        RewardTokenInfo memory rt = rewardTokenInfos[i];
+        RewardTokenInfo storage rt = rewardTokenInfos[i];
         if (totalSupply() == 0) {
             return rt.accRewardPerShare;
         }

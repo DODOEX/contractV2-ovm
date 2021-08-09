@@ -25,7 +25,7 @@ contract DODOMigrationBSC is InitializableOwnable {
     address public immutable _DODO_APPROVE_PROXY_;
     mapping(address => uint256) public balances;
 
-    constructor(address ethDodoToken, address dodoApproveProxy) public {
+    constructor(address ethDodoToken, address dodoApproveProxy) {
         _ETH_DODO_TOKEN_ = ethDodoToken;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
     }

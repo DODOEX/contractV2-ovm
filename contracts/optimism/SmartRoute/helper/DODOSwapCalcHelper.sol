@@ -13,7 +13,7 @@ import {IDODOSellHelper} from "./DODOSellHelper.sol";
 contract DODOSwapCalcHelper {
     address public immutable _DODO_SELL_HELPER_;
 
-    constructor(address dodoSellHelper) public {
+    constructor(address dodoSellHelper) {
         _DODO_SELL_HELPER_ = dodoSellHelper;
     }
 

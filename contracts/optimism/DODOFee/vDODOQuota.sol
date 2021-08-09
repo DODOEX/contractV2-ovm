@@ -18,7 +18,7 @@ contract vDODOQuota is InitializableOwnable {
     uint256 public _QUOTA_RATIO_;
     uint256 public _BASE_QUOTA_;
 
-    constructor(address vdodoToken) public {
+    constructor(address vdodoToken) {
         _VDODO_TOKEN_ = vdodoToken;
     }
 
