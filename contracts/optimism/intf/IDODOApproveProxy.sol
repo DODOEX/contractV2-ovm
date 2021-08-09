@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 interface IDODOApproveProxy {
     function isAllowedProxy(address _proxy) external view returns (bool);

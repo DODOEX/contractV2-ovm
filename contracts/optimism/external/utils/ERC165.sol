@@ -1,7 +1,7 @@
 // This is a file copied from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/introspection/ERC165.sol
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 import "../../intf/IERC165.sol";
 

@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 import {Ownable} from "../../lib/Ownable.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";

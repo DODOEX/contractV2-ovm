@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 interface IOracle {
     function getPrice(address base) external view returns (uint256 latestPrice,bool isValid,bool isStale,uint256 timestamp);    

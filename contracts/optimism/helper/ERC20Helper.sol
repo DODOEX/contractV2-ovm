@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 interface IERC20ForCheck {
     function decimals() external view returns (uint);

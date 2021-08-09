@@ -5,7 +5,7 @@
     
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 import {IDODOAdapter} from "../intf/IDODOAdapter.sol";
 import {IUni} from "../intf/IUni.sol";

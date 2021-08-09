@@ -1,7 +1,7 @@
 // This is a file copied from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC1155/ERC1155.sol
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 import {IERC1155} from "../../intf/IERC1155.sol";
 import {IERC165} from "../../intf/IERC165.sol";

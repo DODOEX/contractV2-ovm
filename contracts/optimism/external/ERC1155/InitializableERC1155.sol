@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 import {ERC1155} from "./ERC1155.sol";
 import {Strings} from "../utils/Strings.sol";

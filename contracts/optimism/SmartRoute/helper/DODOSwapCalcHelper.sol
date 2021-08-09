@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 import {IDODOV1} from "../intf/IDODOV1.sol";
 import {IDODOSellHelper} from "./DODOSellHelper.sol";

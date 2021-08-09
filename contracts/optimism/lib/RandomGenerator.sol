@@ -5,7 +5,7 @@
 
 */
 
-pragma solidity 0.6.9;
+pragma solidity 0.7.6;
 
 interface IRandomGenerator {
     function random(uint256 seed) external view returns (uint256);
