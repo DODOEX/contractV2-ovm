@@ -5,11 +5,10 @@
 
 pragma solidity 0.7.6;
 
-import {IDODOApproveProxy} from "../DODOApproveProxy.sol";
+import {IDODOApproveProxy} from "../intf/IDODOApproveProxy.sol";
 import {IDODOV2} from "./../intf/IDODOV2.sol";
 import {IERC20} from "../../intf/IERC20.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
-import {IWETH} from "../../intf/IWETH.sol";
 import {SafeMath} from "../../lib/SafeMath.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
 import {ReentrancyGuard} from "../../lib/ReentrancyGuard.sol";
@@ -26,8 +25,7 @@ contract DODOCpProxy is ReentrancyGuard {
 
     // ============ Storage ============
 
-    address constant _ETH_ADDRESS_ = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address public immutable _WETH_;
+    address constant _ETH_ = 0x4200000000000000000000000000000000000006;
     address public immutable _DODO_APPROVE_PROXY_;
     address public immutable _UPCP_FACTORY_;
     address public immutable _CP_FACTORY_;
@@ -44,12 +42,10 @@ contract DODOCpProxy is ReentrancyGuard {
     receive() external payable {}
 
     constructor(
-        address payable weth,
         address cpFactory,
         address upCpFactory,
         address dodoApproveProxy
     ) {
-        _WETH_ = weth;
         _CP_FACTORY_ = cpFactory;
         _UPCP_FACTORY_ = upCpFactory;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
@@ -67,7 +63,7 @@ contract DODOCpProxy is ReentrancyGuard {
         uint256 deadLine
     ) external payable preventReentrant judgeExpired(deadLine) returns (address payable newUpCrowdPooling) {
         address _baseToken = baseToken;
-        address _quoteToken = quoteToken == _ETH_ADDRESS_ ? _WETH_ : quoteToken;
+        address _quoteToken = quoteToken;
         
         newUpCrowdPooling = IDODOV2(_UPCP_FACTORY_).createCrowdPooling();
 
@@ -78,9 +74,9 @@ contract DODOCpProxy is ReentrancyGuard {
             baseInAmount,
             false
         );
-
-        (bool success, ) = newUpCrowdPooling.call{value: msg.value}("");
-        require(success, "DODOCpProxy: Transfer failed");
+        
+        uint256 msgValue = IERC20(_ETH_).balanceOf(address(this));
+        IERC20(_ETH_).transfer(newUpCrowdPooling, msgValue);
 
         IDODOV2(_UPCP_FACTORY_).initCrowdPooling(
             newUpCrowdPooling,
@@ -105,7 +101,7 @@ contract DODOCpProxy is ReentrancyGuard {
         uint256 deadLine
     ) external payable preventReentrant judgeExpired(deadLine) returns (address payable newCrowdPooling) {
         address _baseToken = baseToken;
-        address _quoteToken = quoteToken == _ETH_ADDRESS_ ? _WETH_ : quoteToken;
+        address _quoteToken = quoteToken;
         
         newCrowdPooling = IDODOV2(_CP_FACTORY_).createCrowdPooling();
 
@@ -117,8 +113,8 @@ contract DODOCpProxy is ReentrancyGuard {
             false
         );
         
-        (bool success, ) = newCrowdPooling.call{value: msg.value}("");
-        require(success, "DODOCpProxy: Transfer failed");
+        uint256 msgValue = IERC20(_ETH_).balanceOf(address(this));
+        IERC20(_ETH_).transfer(newCrowdPooling, msgValue);
 
         IDODOV2(_CP_FACTORY_).initCrowdPooling(
             newCrowdPooling,
@@ -142,8 +138,7 @@ contract DODOCpProxy is ReentrancyGuard {
     ) internal {
         if (isETH) {
             if (amount > 0) {
-                IWETH(_WETH_).deposit{value: amount}();
-                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_WETH_), to, amount);
+                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_ETH_), to, amount);
             }
         } else {
             IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(token, from, to, amount);

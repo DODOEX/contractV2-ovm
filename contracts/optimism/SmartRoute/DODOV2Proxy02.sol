@@ -7,14 +7,8 @@
 
 pragma solidity 0.7.6;
 
-import {IDODOV2Proxy01} from "./intf/IDODOV2Proxy01.sol";
 import {IDODOV2} from "./intf/IDODOV2.sol";
-import {IDODOV1} from "./intf/IDODOV1.sol";
-import {IDODOApproveProxy} from "./DODOApproveProxy.sol";
-import {IDODOSellHelper} from "./helper/DODOSellHelper.sol";
 import {IERC20} from "../intf/IERC20.sol";
-import {IWETH} from "../intf/IWETH.sol";
-import {IUni} from "./intf/IUni.sol";
 import {SafeMath} from "../lib/SafeMath.sol";
 import {UniversalERC20} from "./lib/UniversalERC20.sol";
 import {SafeERC20} from "../lib/SafeERC20.sol";
@@ -22,6 +16,26 @@ import {DecimalMath} from "../lib/DecimalMath.sol";
 import {ReentrancyGuard} from "../lib/ReentrancyGuard.sol";
 import {InitializableOwnable} from "../lib/InitializableOwnable.sol";
 import {IDODOAdapter} from "./intf/IDODOAdapter.sol";
+import {IDODOSellHelper} from "./intf/IDODOSellHelper.sol";
+import {IDODOApproveProxy} from "./intf/IDODOApproveProxy.sol";
+// import {IDODOV1} from "./intf/IDODOV1.sol";
+
+interface IDODOV1 {
+    function sellBaseToken(
+        uint256 amount,
+        uint256 minReceiveQuote,
+        bytes calldata data
+    ) external returns (uint256);
+    function buyBaseToken(
+        uint256 amount,
+        uint256 maxPayQuote,
+        bytes calldata data
+    ) external returns (uint256);
+    function depositBaseTo(address to, uint256 amount) external returns (uint256);
+    function depositQuoteTo(address to, uint256 amount) external returns (uint256);
+    function _BASE_TOKEN_() external view returns (address);
+    function _QUOTE_TOKEN_() external view returns (address);
+}
 
 /**
  * @title DODOV2Proxy02
@@ -29,14 +43,13 @@ import {IDODOAdapter} from "./intf/IDODOAdapter.sol";
  *
  * @notice Entrance of trading in DODO platform
  */
-contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable {
+contract DODOV2Proxy02 is ReentrancyGuard, InitializableOwnable {
     using SafeMath for uint256;
     using UniversalERC20 for IERC20;
 
     // ============ Storage ============
 
-    address constant _ETH_ADDRESS_ = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address public immutable _WETH_;
+    address constant _ETH_ = 0x4200000000000000000000000000000000000006;
     address public immutable _DODO_APPROVE_PROXY_;
     address public immutable _DODO_SELL_HELPER_;
     address public immutable _DVM_FACTORY_;
@@ -56,7 +69,7 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
     // ============ Modifiers ============
 
     modifier judgeExpired(uint256 deadLine) {
-        require(deadLine >= block.timestamp, "DODOV2Proxy02: EXPIRED");
+        require(deadLine >= block.timestamp, "EXPIRED");
         _;
     }
 
@@ -67,13 +80,11 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
     constructor(
         address dvmFactory,
         address dppFactory,
-        address payable weth,
         address dodoApproveProxy,
         address dodoSellHelper
     ) {
         _DVM_FACTORY_ = dvmFactory;
         _DPP_FACTORY_ = dppFactory;
-        _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
         _DODO_SELL_HELPER_ = dodoSellHelper;
     }
@@ -100,16 +111,16 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         payable
         preventReentrant
         judgeExpired(deadLine)
         returns (address newVendingMachine, uint256 shares)
     {
         {
-            address _baseToken = baseToken == _ETH_ADDRESS_ ? _WETH_ : baseToken;
-            address _quoteToken = quoteToken == _ETH_ADDRESS_ ? _WETH_ : quoteToken;
+            address _baseToken = baseToken;
+            address _quoteToken = quoteToken;
             newVendingMachine = IDODOV2(_DVM_FACTORY_).createDODOVendingMachine(
+                msg.sender,
                 _baseToken,
                 _quoteToken,
                 lpFeeRate,
@@ -127,14 +138,14 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
                 newVendingMachine,
                 _baseToken,
                 baseInAmount,
-                _baseToken == _ETH_ADDRESS_
+                _baseToken == _ETH_
             );
             _deposit(
                 msg.sender,
                 newVendingMachine,
                 _quoteToken,
                 quoteInAmount,
-                _quoteToken == _ETH_ADDRESS_
+                _quoteToken == _ETH_
             );
         }
 
@@ -151,7 +162,6 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         payable
         preventReentrant
         judgeExpired(deadLine)
@@ -167,9 +177,10 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
             baseInAmount,
             quoteInAmount
         );
+
         require(
             baseAdjustedInAmount >= baseMinAmount && quoteAdjustedInAmount >= quoteMinAmount,
-            "DODOV2Proxy02: deposit amount is not enough"
+            "deposit amount is not enough"
         );
 
         _deposit(msg.sender, _dvm, IDODOV2(_dvm)._BASE_TOKEN_(), baseAdjustedInAmount, flag == 1);
@@ -177,8 +188,8 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         
         (shares, , ) = IDODOV2(_dvm).buyShares(msg.sender);
         // refund dust eth
-        if (flag == 1 && msg.value > baseAdjustedInAmount) msg.sender.transfer(msg.value - baseAdjustedInAmount);
-        if (flag == 2 && msg.value > quoteAdjustedInAmount) msg.sender.transfer(msg.value - quoteAdjustedInAmount);
+        if (flag == 1 && baseInAmount > baseAdjustedInAmount) IERC20(_ETH_).transfer(msg.sender, baseInAmount - baseAdjustedInAmount);
+        if (flag == 2 && quoteInAmount > quoteAdjustedInAmount) IERC20(_ETH_).transfer(msg.sender, quoteInAmount - quoteAdjustedInAmount);
     }
 
     function _addDVMLiquidity(
@@ -222,7 +233,6 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         payable
         preventReentrant
         judgeExpired(deadLine)
@@ -232,17 +242,14 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
 
         address _baseToken = baseToken;
         address _quoteToken = quoteToken;
-        _deposit(msg.sender, newPrivatePool, _baseToken, baseInAmount, _baseToken == _ETH_ADDRESS_);
+        _deposit(msg.sender, newPrivatePool, _baseToken, baseInAmount, _baseToken == _ETH_);
         _deposit(
             msg.sender,
             newPrivatePool,
             _quoteToken,
             quoteInAmount,
-            _quoteToken == _ETH_ADDRESS_
+            _quoteToken == _ETH_
         );
-
-        if (_baseToken == _ETH_ADDRESS_) _baseToken = _WETH_;
-        if (_quoteToken == _ETH_ADDRESS_) _quoteToken = _WETH_;
 
         IDODOV2(_DPP_FACTORY_).initDODOPrivatePool(
             newPrivatePool,
@@ -264,7 +271,7 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 minBaseReserve,
         uint256 minQuoteReserve,
         uint256 deadLine
-    ) external override payable preventReentrant judgeExpired(deadLine) {
+    ) external payable preventReentrant judgeExpired(deadLine) {
         _deposit(
             msg.sender,
             dppAddress,
@@ -290,9 +297,6 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
             minBaseReserve,
             minQuoteReserve
         ), "Reset Failed");
-
-        _withdraw(msg.sender, IDODOV2(dppAddress)._BASE_TOKEN_(), amountList[2], flag == 3);
-        _withdraw(msg.sender, IDODOV2(dppAddress)._QUOTE_TOKEN_(), amountList[3], flag == 4);
     }
 
     // ============ Swap ============
@@ -306,17 +310,17 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         payable
         judgeExpired(deadLine)
         returns (uint256 returnAmount)
     {
-        require(dodoPairs.length > 0, "DODOV2Proxy02: PAIRS_EMPTY");
-        require(minReturnAmount > 0, "DODOV2Proxy02: RETURN_AMOUNT_ZERO");
+        require(dodoPairs.length > 0, "PAIRS_EMPTY");
+        require(minReturnAmount > 0, "RETURN_AMOUNT_ZERO");
         
         uint256 originToTokenBalance = IERC20(toToken).balanceOf(msg.sender);
-        IWETH(_WETH_).deposit{value: msg.value}();
-        IWETH(_WETH_).transfer(dodoPairs[0], msg.value);
+
+        uint256 msgValue = IERC20(_ETH_).balanceOf(address(this));
+        IERC20(_ETH_).transfer(dodoPairs[0], msgValue);
 
         for (uint256 i = 0; i < dodoPairs.length; i++) {
             if (i == dodoPairs.length - 1) {
@@ -336,13 +340,13 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         }
 
         returnAmount = IERC20(toToken).balanceOf(msg.sender).sub(originToTokenBalance);
-        require(returnAmount >= minReturnAmount, "DODOV2Proxy02: Return amount is not enough");
+        require(returnAmount >= minReturnAmount, "Return amount is not enough");
 
         emit OrderHistory(
-            _ETH_ADDRESS_,
+            _ETH_,
             toToken,
             msg.sender,
-            msg.value,
+            msgValue,
             returnAmount
         );
     }
@@ -357,12 +361,11 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         judgeExpired(deadLine)
         returns (uint256 returnAmount)
     {
-        require(dodoPairs.length > 0, "DODOV2Proxy02: PAIRS_EMPTY");
-        require(minReturnAmount > 0, "DODOV2Proxy02: RETURN_AMOUNT_ZERO");
+        require(dodoPairs.length > 0, "PAIRS_EMPTY");
+        require(minReturnAmount > 0, "RETURN_AMOUNT_ZERO");
         
         IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(fromToken, msg.sender, dodoPairs[0], fromTokenAmount);
 
@@ -382,14 +385,13 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
             }
             directions = directions >> 1;
         }
-        returnAmount = IWETH(_WETH_).balanceOf(address(this));
-        require(returnAmount >= minReturnAmount, "DODOV2Proxy02: Return amount is not enough");
-        IWETH(_WETH_).withdraw(returnAmount);
-        msg.sender.transfer(returnAmount);
+        returnAmount = IERC20(_ETH_).balanceOf(address(this));
+        require(returnAmount >= minReturnAmount, "Return amount is not enough");
+        IERC20(_ETH_).transfer(msg.sender, returnAmount);
 
         emit OrderHistory(
             fromToken,
-            _ETH_ADDRESS_,
+            _ETH_,
             msg.sender,
             fromTokenAmount,
             returnAmount
@@ -407,12 +409,11 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         judgeExpired(deadLine)
         returns (uint256 returnAmount)
     {
-        require(dodoPairs.length > 0, "DODOV2Proxy02: PAIRS_EMPTY");
-        require(minReturnAmount > 0, "DODOV2Proxy02: RETURN_AMOUNT_ZERO");
+        require(dodoPairs.length > 0, "PAIRS_EMPTY");
+        require(minReturnAmount > 0, "RETURN_AMOUNT_ZERO");
 
         uint256 originToTokenBalance = IERC20(toToken).balanceOf(msg.sender);
         IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(fromToken, msg.sender, dodoPairs[0], fromTokenAmount);
@@ -434,7 +435,7 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
             directions = directions >> 1;
         }
         returnAmount = IERC20(toToken).balanceOf(msg.sender).sub(originToTokenBalance);
-        require(returnAmount >= minReturnAmount, "DODOV2Proxy02: Return amount is not enough");
+        require(returnAmount >= minReturnAmount, "Return amount is not enough");
 
         emit OrderHistory(
             fromToken,
@@ -457,40 +458,45 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         payable
         judgeExpired(deadLine)
         returns (uint256 returnAmount)
     {
-        require(minReturnAmount > 0, "DODOV2Proxy02: RETURN_AMOUNT_ZERO");
+        require(minReturnAmount > 0, "RETURN_AMOUNT_ZERO");
+
+        address _fromToken = fromToken;
+        address _toToken = toToken;
         
-        uint256 toTokenOriginBalance = IERC20(toToken).universalBalanceOf(msg.sender);
-        if (fromToken != _ETH_ADDRESS_) {
+        uint256 toTokenOriginBalance = IERC20(_toToken).balanceOf(msg.sender);
+
+        if (_fromToken != _ETH_) {
             IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(
-                fromToken,
+                _fromToken,
                 msg.sender,
                 address(this),
                 fromTokenAmount
             );
-            IERC20(fromToken).universalApproveMax(approveTarget, fromTokenAmount);
+            IERC20(_fromToken).universalApproveMax(approveTarget, fromTokenAmount);
+        } else {
+            uint256 msgValue = IERC20(_ETH_).balanceOf(address(this));
+            IERC20(_ETH_).transfer(swapTarget, msgValue);
         }
 
-        require(isWhiteListed[swapTarget], "DODOV2Proxy02: Not Whitelist Contract");
-        (bool success, ) = swapTarget.call{value: fromToken == _ETH_ADDRESS_ ? msg.value : 0}(callDataConcat);
+        require(isWhiteListed[swapTarget], "Not Whitelist Contract");        
+        (bool success, ) = swapTarget.call(callDataConcat);
+        require(success, "External Swap execution Failed");
 
-        require(success, "DODOV2Proxy02: External Swap execution Failed");
-
-        IERC20(toToken).universalTransfer(
+        IERC20(_toToken).universalTransfer(
             msg.sender,
-            IERC20(toToken).universalBalanceOf(address(this))
+            IERC20(_toToken).balanceOf(address(this))
         );
 
-        returnAmount = IERC20(toToken).universalBalanceOf(msg.sender).sub(toTokenOriginBalance);
-        require(returnAmount >= minReturnAmount, "DODOV2Proxy02: Return amount is not enough");
+        returnAmount = IERC20(_toToken).balanceOf(msg.sender).sub(toTokenOriginBalance);
+        require(returnAmount >= minReturnAmount, "Return amount is not enough");
 
         emit OrderHistory(
-            fromToken,
-            toToken,
+            _fromToken,
+            _toToken,
             msg.sender,
             fromTokenAmount,
             returnAmount
@@ -508,19 +514,18 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 deadLine
     )
         external
-        override
         payable
         judgeExpired(deadLine)
         returns (uint256 returnAmount)
     {
-        require(dodoPairs.length > 0, "DODOV2Proxy02: PAIRS_EMPTY");
-        require(minReturnAmount > 0, "DODOV2Proxy02: RETURN_AMOUNT_ZERO");
+        require(dodoPairs.length > 0, "PAIRS_EMPTY");
+        require(minReturnAmount > 0, "RETURN_AMOUNT_ZERO");
         
 
         address _fromToken = fromToken;
         address _toToken = toToken;
-        
-        _deposit(msg.sender, address(this), _fromToken, fromTokenAmount, _fromToken == _ETH_ADDRESS_);
+
+        _deposit(msg.sender, address(this), _fromToken, fromTokenAmount, _fromToken == _ETH_);
 
         for (uint256 i = 0; i < dodoPairs.length; i++) {
             address curDodoPair = dodoPairs[i];
@@ -542,15 +547,9 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
             directions = directions >> 1;
         }
 
+        returnAmount = IERC20(_toToken).balanceOf(address(this));
         
-        if (_toToken == _ETH_ADDRESS_) {
-            returnAmount = IWETH(_WETH_).balanceOf(address(this));
-            IWETH(_WETH_).withdraw(returnAmount);
-        } else {
-            returnAmount = IERC20(_toToken).tokenBalanceOf(address(this));
-        }
-        
-        require(returnAmount >= minReturnAmount, "DODOV2Proxy02: Return amount is not enough");
+        require(returnAmount >= minReturnAmount, "Return amount is not enough");
         IERC20(_toToken).universalTransfer(msg.sender, returnAmount);
 
         emit OrderHistory(_fromToken, _toToken, msg.sender, fromTokenAmount, returnAmount);
@@ -568,19 +567,19 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 directions,
         bool,
         uint256 deadLine
-    ) external override payable judgeExpired(deadLine) returns (uint256 returnAmount) {
-        require(mixPairs.length > 0, "DODOV2Proxy02: PAIRS_EMPTY");
-        require(mixPairs.length == mixAdapters.length, "DODOV2Proxy02: PAIR_ADAPTER_NOT_MATCH");
-        require(mixPairs.length == assetTo.length - 1, "DODOV2Proxy02: PAIR_ASSETTO_NOT_MATCH");
-        require(minReturnAmount > 0, "DODOV2Proxy02: RETURN_AMOUNT_ZERO");
+    ) external payable judgeExpired(deadLine) returns (uint256 returnAmount) {
+        require(mixPairs.length > 0, "PAIRS_EMPTY");
+        require(mixPairs.length == mixAdapters.length, "PAIR_ADAPTER_NOT_MATCH");
+        require(mixPairs.length == assetTo.length - 1, "PAIR_ASSETTO_NOT_MATCH");
+        require(minReturnAmount > 0, "RETURN_AMOUNT_ZERO");
 
         address _fromToken = fromToken;
         address _toToken = toToken;
         uint256 _fromTokenAmount = fromTokenAmount;
         
-        uint256 toTokenOriginBalance = IERC20(_toToken).universalBalanceOf(msg.sender);
+        uint256 toTokenOriginBalance = IERC20(_toToken).balanceOf(msg.sender);
         
-        _deposit(msg.sender, assetTo[0], _fromToken, _fromTokenAmount, _fromToken == _ETH_ADDRESS_);
+        _deposit(msg.sender, assetTo[0], _fromToken, _fromTokenAmount, _fromToken == _ETH_);
 
         for (uint256 i = 0; i < mixPairs.length; i++) {
             if (directions & 1 == 0) {
@@ -591,15 +590,14 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
             directions = directions >> 1;
         }
 
-        if(_toToken == _ETH_ADDRESS_) {
-            returnAmount = IWETH(_WETH_).balanceOf(address(this));
-            IWETH(_WETH_).withdraw(returnAmount);
-            msg.sender.transfer(returnAmount);
+        if(_toToken == _ETH_) {
+            returnAmount = IERC20(_ETH_).balanceOf(address(this));
+            IERC20(_ETH_).transfer(msg.sender,returnAmount);
         }else {
-            returnAmount = IERC20(_toToken).tokenBalanceOf(msg.sender).sub(toTokenOriginBalance);
+            returnAmount = IERC20(_toToken).balanceOf(msg.sender).sub(toTokenOriginBalance);
         }
 
-        require(returnAmount >= minReturnAmount, "DODOV2Proxy02: Return amount is not enough");
+        require(returnAmount >= minReturnAmount, "Return amount is not enough");
 
         emit OrderHistory(
             _fromToken,
@@ -616,7 +614,7 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 quoteAmount,
         uint8 flag, // 0 - ERC20, 1 - quoteInETH
         uint256 deadLine
-    ) external override payable preventReentrant judgeExpired(deadLine) {
+    ) external payable preventReentrant judgeExpired(deadLine) {
         _deposit(msg.sender, cpAddress, IDODOV2(cpAddress)._QUOTE_TOKEN_(), quoteAmount, flag == 1);
         IDODOV2(cpAddress).bid(msg.sender);
     }
@@ -630,7 +628,7 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
         uint256 quoteMinShares,
         uint8 flag, // 0 erc20 In  1 baseInETH  2 quoteIn ETH 
         uint256 deadLine
-    ) external override payable preventReentrant judgeExpired(deadLine) returns(uint256 baseShares, uint256 quoteShares) {
+    ) external payable preventReentrant judgeExpired(deadLine) returns(uint256 baseShares, uint256 quoteShares) {
         address _baseToken = IDODOV1(pair)._BASE_TOKEN_();
         address _quoteToken = IDODOV1(pair)._QUOTE_TOKEN_();
         
@@ -647,7 +645,7 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
             quoteShares = IDODOV1(pair).depositQuoteTo(msg.sender, quoteAmount);
         }
 
-        require(baseShares >= baseMinShares && quoteShares >= quoteMinShares,"DODOV2Proxy02: Return DLP is not enough");
+        require(baseShares >= baseMinShares && quoteShares >= quoteMinShares,"Return DLP is not enough");
     }
     
 
@@ -660,29 +658,10 @@ contract DODOV2Proxy02 is IDODOV2Proxy01, ReentrancyGuard, InitializableOwnable 
     ) internal {
         if (isETH) {
             if (amount > 0) {
-                IWETH(_WETH_).deposit{value: amount}();
-                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_WETH_), to, amount);
+                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_ETH_), to, amount);
             }
         } else {
             IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(token, from, to, amount);
-        }
-    }
-
-    function _withdraw(
-        address payable to,
-        address token,
-        uint256 amount,
-        bool isETH
-    ) internal {
-        if (isETH) {
-            if (amount > 0) {
-                IWETH(_WETH_).withdraw(amount);
-                to.transfer(amount);
-            }
-        } else {
-            if (amount > 0) {
-                SafeERC20.safeTransfer(IERC20(token), to, amount);
-            }
         }
     }
 }

@@ -11,7 +11,6 @@ pragma experimental ABIEncoderV2;
 import {SafeMath} from "../../lib/SafeMath.sol";
 import {DSPVault} from "./DSPVault.sol";
 import {DecimalMath} from "../../lib/DecimalMath.sol";
-import {IDODOCallee} from "../../intf/IDODOCallee.sol";
 
 contract DSPFunding is DSPVault {
     using SafeMath for uint256;
@@ -72,7 +71,7 @@ contract DSPFunding is DSPVault {
         address to,
         uint256 baseMinAmount,
         uint256 quoteMinAmount,
-        bytes calldata data,
+        bytes calldata,
         uint256 deadline
     ) external preventReentrant returns (uint256 baseAmount, uint256 quoteAmount) {
         require(deadline >= block.timestamp, "TIME_EXPIRED");
@@ -98,16 +97,6 @@ contract DSPFunding is DSPVault {
         _transferQuoteOut(to, quoteAmount);
         _sync();
 
-        if (data.length > 0) {
-            //Same as DVM 
-            IDODOCallee(to).DVMSellShareCall(
-                msg.sender,
-                shareAmount,
-                baseAmount,
-                quoteAmount,
-                data
-            );
-        }
 
         emit SellShares(msg.sender, to, shareAmount, _SHARES_[msg.sender]);
     }

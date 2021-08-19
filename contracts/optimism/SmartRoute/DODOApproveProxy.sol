@@ -11,11 +11,6 @@ pragma experimental ABIEncoderV2;
 import {IDODOApprove} from "../intf/IDODOApprove.sol";
 import {InitializableOwnable} from "../lib/InitializableOwnable.sol";
 
-interface IDODOApproveProxy {
-    function isAllowedProxy(address _proxy) external view returns (bool);
-    function claimTokens(address token,address who,address dest,uint256 amount) external;
-}
-
 /**
  * @title DODOApproveProxy
  * @author DODO Breeder
@@ -25,7 +20,7 @@ interface IDODOApproveProxy {
 contract DODOApproveProxy is InitializableOwnable {
     
     // ============ Storage ============
-    uint256 private constant _TIMELOCK_DURATION_ = 3 days;
+    uint256 private constant _TIMELOCK_DURATION_ = 3 * 60 * 60 * 24;
     mapping (address => bool) public _IS_ALLOWED_PROXY_;
     uint256 public _TIMELOCK_;
     address public _PENDING_ADD_DODO_PROXY_;

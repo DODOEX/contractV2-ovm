@@ -9,9 +9,9 @@ pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
 import {InitializableOwnable} from "../../lib/InitializableOwnable.sol";
-import {IDODOApproveProxy} from "../DODOApproveProxy.sol";
-import {IRewardVault} from "../../DODOToken/DODOMineV3/RewardVault.sol";
-import {IDODOMineV3Registry} from "../../Factory/Registries/DODOMineV3Registry.sol";
+import {IDODOApproveProxy} from "../intf/IDODOApproveProxy.sol";
+import {IRewardVault} from "../../intf/IRewardVault.sol";
+import {IDODOMineV3Registry} from "../../intf/IDODOMineV3Registry.sol";
 import {ICloneFactory} from "../../lib/CloneFactory.sol";
 import {SafeMath} from "../../lib/SafeMath.sol";
 

@@ -29,6 +29,7 @@ contract RandomGenerator is IRandomGenerator{
         for (uint256 i = 0; i < pools.length; i++) {
             priceSum += IDODOMidPrice(pools[i]).getMidPrice();
         }
-        return uint256(keccak256(abi.encodePacked(blockhash(block.number-1), priceSum, seed)));
+        // return uint256(keccak256(abi.encodePacked(blockhash(block.number-1), priceSum, seed)));
+        return uint256(keccak256(abi.encodePacked(block.timestamp, block.number, priceSum, seed)));
     }
 }

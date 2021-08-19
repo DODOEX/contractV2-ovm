@@ -95,7 +95,7 @@ contract CP is CPVesting {
 
         _IS_OPEN_TWAP_ = isOpenTWAP;
 
-        require(address(this).balance == _SETTEL_FUND_, "SETTLE_FUND_NOT_MATCH");
+        require(IERC20(_ETH_).balanceOf(address(this)) >= _SETTEL_FUND_, "SETTLE_FUND_NOT_ENOUGH");
     }
 
     // ============ Version Control ============

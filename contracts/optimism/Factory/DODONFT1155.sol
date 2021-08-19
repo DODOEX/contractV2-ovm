@@ -23,9 +23,9 @@ contract DODONFT1155 is ERC1155, InitializableOwnable {
     event DODONFTBurn(address account, uint256 tokenId, uint256 amount);
     
 
-    function mint(string calldata uri, uint256 amount) external {
+    function mint(string calldata _uri, uint256 amount) external {
         _mint(msg.sender, _CUR_TOKENID_, amount, "");
-        _setTokenURI(_CUR_TOKENID_, uri);
+        _setTokenURI(_CUR_TOKENID_, _uri);
         emit DODONFTMint(msg.sender, _CUR_TOKENID_, amount);
         _CUR_TOKENID_ = _CUR_TOKENID_ + 1;
     }

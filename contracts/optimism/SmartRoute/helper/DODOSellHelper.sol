@@ -12,13 +12,6 @@ import {IDODOV1} from "../intf/IDODOV1.sol";
 import {SafeMath} from "../../lib/SafeMath.sol";
 import {DecimalMath} from "../../lib/DecimalMath.sol";
 
-// import {DODOMath} from "../lib/DODOMath.sol";
-
-interface IDODOSellHelper {
-    function querySellQuoteToken(address dodo, uint256 amount) external view returns (uint256);
-    
-    function querySellBaseToken(address dodo, uint256 amount) external view returns (uint256);
-}
 
 library DODOMath {
     using SafeMath for uint256;

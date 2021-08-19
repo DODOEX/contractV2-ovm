@@ -7,15 +7,14 @@
 
 pragma solidity 0.7.6;
 
-import {IDODOApproveProxy} from "../DODOApproveProxy.sol";
+import {IDODOApproveProxy} from "../intf/IDODOApproveProxy.sol";
 import {IERC20} from "../../intf/IERC20.sol";
-import {IWETH} from "../../intf/IWETH.sol";
 import {SafeMath} from "../../lib/SafeMath.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
 import {DecimalMath} from "../../lib/DecimalMath.sol";
 import {ReentrancyGuard} from "../../lib/ReentrancyGuard.sol";
 import {IDSP} from "../../DODOStablePool/intf/IDSP.sol";
-import {IDSPFactory} from "../../Factory/DSPFactory.sol";
+import {IDSPFactory} from "../../intf/IDSPFactory.sol";
 
 /**
  * @title DODODspProxy
@@ -28,8 +27,7 @@ contract DODODspProxy is ReentrancyGuard {
 
     // ============ Storage ============
 
-    address constant _ETH_ADDRESS_ = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address public immutable _WETH_;
+    address constant _ETH_ = 0x4200000000000000000000000000000000000006;
     address public immutable _DODO_APPROVE_PROXY_;
     address public immutable _DSP_FACTORY_;
 
@@ -46,11 +44,9 @@ contract DODODspProxy is ReentrancyGuard {
 
     constructor(
         address dspFactory,
-        address payable weth,
         address dodoApproveProxy
     ) {
         _DSP_FACTORY_ = dspFactory;
-        _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
     }
 
@@ -74,9 +70,10 @@ contract DODODspProxy is ReentrancyGuard {
         returns (address newDODOStablePair, uint256 shares)
     {
         {
-            address _baseToken = baseToken == _ETH_ADDRESS_ ? _WETH_ : baseToken;
-            address _quoteToken = quoteToken == _ETH_ADDRESS_ ? _WETH_ : quoteToken;
+            address _baseToken = baseToken;
+            address _quoteToken = quoteToken;
             newDODOStablePair = IDSPFactory(_DSP_FACTORY_).createDODOStablePool(
+                msg.sender,
                 _baseToken,
                 _quoteToken,
                 lpFeeRate,
@@ -94,14 +91,14 @@ contract DODODspProxy is ReentrancyGuard {
                 newDODOStablePair,
                 _baseToken,
                 baseInAmount,
-                _baseToken == _ETH_ADDRESS_
+                _baseToken == _ETH_
             );
             _deposit(
                 msg.sender,
                 newDODOStablePair,
                 _quoteToken,
                 quoteInAmount,
-                _quoteToken == _ETH_ADDRESS_
+                _quoteToken == _ETH_
             );
         }
 
@@ -144,8 +141,8 @@ contract DODODspProxy is ReentrancyGuard {
         (shares, , ) = IDSP(_dsp).buyShares(msg.sender);
 
         // refund dust eth
-        if (flag == 1 && msg.value > baseAdjustedInAmount) msg.sender.transfer(msg.value - baseAdjustedInAmount);
-        if (flag == 2 && msg.value > quoteAdjustedInAmount) msg.sender.transfer(msg.value - quoteAdjustedInAmount);
+        if (flag == 1 && baseInAmount > baseAdjustedInAmount) IERC20(_ETH_).transfer(msg.sender, baseInAmount - baseAdjustedInAmount);
+        if (flag == 2 && quoteInAmount > quoteAdjustedInAmount) IERC20(_ETH_).transfer(msg.sender, quoteInAmount - quoteAdjustedInAmount);
     }
 
 
@@ -187,8 +184,8 @@ contract DODODspProxy is ReentrancyGuard {
     ) internal {
         if (isETH) {
             if (amount > 0) {
-                IWETH(_WETH_).deposit{value: amount}();
-                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_WETH_), to, amount);
+                // IWETH(_WETH_).deposit{value: amount}();
+                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_ETH_), to, amount);
             }
         } else {
             IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(token, from, to, amount);

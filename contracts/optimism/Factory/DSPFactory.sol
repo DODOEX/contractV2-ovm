@@ -12,17 +12,6 @@ import {InitializableOwnable} from "../lib/InitializableOwnable.sol";
 import {ICloneFactory} from "../lib/CloneFactory.sol";
 import {IDSP} from "../DODOStablePool/intf/IDSP.sol";
 
-interface IDSPFactory {
-    function createDODOStablePool(
-        address baseToken,
-        address quoteToken,
-        uint256 lpFeeRate,
-        uint256 i,
-        uint256 k,
-        bool isOpenTWAP
-    ) external returns (address newStablePool);
-}
-
 /**
  * @title DODO StablePool Factory
  * @author DODO Breeder
@@ -65,6 +54,7 @@ contract DSPFactory is InitializableOwnable {
     }
 
     function createDODOStablePool(
+        address creator,
         address baseToken,
         address quoteToken,
         uint256 lpFeeRate,
@@ -86,8 +76,8 @@ contract DSPFactory is InitializableOwnable {
             );
         }
         _REGISTRY_[baseToken][quoteToken].push(newStablePool);
-        _USER_REGISTRY_[tx.origin].push(newStablePool);
-        emit NewDSP(baseToken, quoteToken, tx.origin, newStablePool);
+        _USER_REGISTRY_[creator].push(newStablePool);
+        emit NewDSP(baseToken, quoteToken, creator, newStablePool);
     }
 
     // ============ Admin Operation Functions ============

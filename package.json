@@ -24,11 +24,42 @@
     "url": "https://github.com/truffle-box/optimism-box/issues"
   },
   "homepage": "https://github.com/truffle-box/optimism-box#readme",
-  "devDependencies": {
+  "dependencies": {
     "@eth-optimism/core-utils": "^0.4.4",
     "@eth-optimism/plugins": "^0.0.20",
     "@eth-optimism/solc": "0.7.6-alpha.1",
-    "@truffle/hdwallet-provider": "^1.4.1",
-    "dotenv": "^8.2.0"
+    "@types/chai": "^4.2.11",
+    "@types/es6-promisify": "^6.0.0",
+    "@types/ethereumjs-abi": "^0.6.3",
+    "@types/mocha": "^7.0.2",
+    "assert": "^2.0.0",
+    "axios": "^0.20.0",
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^10.1.0",
+    "bignumber.js": "^9.0.0",
+    "chai-bignumber": "^3.0.0",
+    "debug": "^4.1.1",
+    "dotenv": "^8.2.0",
+    "dotenv-flow": "^3.1.0",
+    "es6-promisify": "^6.1.1",
+    "ethereumjs-util": "^7.0.7",
+    "ethjs": "^0.4.0",
+    "lodash": "^4.17.20",
+    "mocha": "^7.2.0",
+    "truffle-hdwallet-provider": "^1.0.17",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.5",
+    "web3": "^1.2.8",
+    "web3-core-helpers": "^1.2.8",
+    "web3-eth-contract": "^1.2.8"
+  },
+  "devDependencies": {
+    "@truffle/hdwallet-provider": "1.4.0",
+    "chai": "^4.2.0",
+    "ganache-cli": "^6.9.1",
+    "prettier": "^2.0.5",
+    "prettier-plugin-solidity": "^1.0.0-alpha.52",
+    "solidity-coverage": "^0.7.7",
+    "truffle-assertions": "^0.9.2"
   }
 }

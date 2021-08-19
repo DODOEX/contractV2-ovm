@@ -11,7 +11,6 @@ import {SafeMath} from "../../lib/SafeMath.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
 import {DecimalMath} from "../../lib/DecimalMath.sol";
 import {IDVM} from "../../DODOVendingMachine/intf/IDVM.sol";
-import {IDODOCallee} from "../../intf/IDODOCallee.sol";
 import {IERC20} from "../../intf/IERC20.sol";
 import {InitializableFragERC20} from "../../external/ERC20/InitializableFragERC20.sol";
 import {ICollateralVault} from "../../CollateralVault/intf/ICollateralVault.sol";
@@ -23,6 +22,10 @@ interface IBuyoutModel {
 contract Fragment is InitializableFragERC20 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    receive() external payable {
+        require(_QUOTE_ == 0x4200000000000000000000000000000000000006);
+    }
 
     // ============ Storage ============
     
@@ -140,13 +143,13 @@ contract Fragment is InitializableFragERC20 {
         _clearBalance(msg.sender);
         IERC20(_QUOTE_).safeTransfer(to, quoteAmount);
 
-        if (data.length > 0) {
-          IDODOCallee(to).NFTRedeemCall(
-            msg.sender,
-            quoteAmount,
-            data
-          );
-        }
+        // if (data.length > 0) {
+        //   IDODOCallee(to).NFTRedeemCall(
+        //     msg.sender,
+        //     quoteAmount,
+        //     data
+        //   );
+        // }
 
         emit Redeem(msg.sender, baseAmount, quoteAmount);
     }

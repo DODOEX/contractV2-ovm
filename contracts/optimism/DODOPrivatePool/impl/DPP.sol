@@ -18,7 +18,7 @@ import {DPPTrader} from "./DPPTrader.sol";
  *
  * @notice DODOPrivatePool initialization
  */
-contract DPP is DPPTrader {
+contract DPP is DPPTrader {    
     function init(
         address owner,
         address maintainer,

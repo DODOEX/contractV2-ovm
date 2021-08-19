@@ -58,7 +58,7 @@ contract DPPTrader is DPPVault {
         uint256 mtFee;
         uint256 newBaseTarget;
         PMMPricing.RState newRState;
-        (receiveQuoteAmount, mtFee, newRState, newBaseTarget) = querySellBase(tx.origin, baseInput);
+        (receiveQuoteAmount, mtFee, newRState, newBaseTarget) = querySellBase(msg.sender, baseInput);
 
         _transferQuoteOut(to, receiveQuoteAmount);
         _transferQuoteOut(_MAINTAINER_, mtFee);
@@ -95,7 +95,7 @@ contract DPPTrader is DPPVault {
         uint256 newQuoteTarget;
         PMMPricing.RState newRState;
         (receiveBaseAmount, mtFee, newRState, newQuoteTarget) = querySellQuote(
-            tx.origin,
+            msg.sender,
             quoteInput
         );
 
@@ -153,7 +153,7 @@ contract DPPTrader is DPPVault {
                 uint256 mtFee,
                 PMMPricing.RState newRState,
                 uint256 newQuoteTarget
-            ) = querySellQuote(tx.origin, quoteInput); // revert if quoteBalance<quoteReserve
+            ) = querySellQuote(msg.sender, quoteInput); // revert if quoteBalance<quoteReserve
             require(uint256(_BASE_RESERVE_).sub(baseBalance) <= receiveBaseAmount, "FLASH_LOAN_FAILED");
 
             _transferBaseOut(_MAINTAINER_, mtFee);
@@ -182,7 +182,7 @@ contract DPPTrader is DPPVault {
                 uint256 mtFee,
                 PMMPricing.RState newRState,
                 uint256 newBaseTarget
-            ) = querySellBase(tx.origin, baseInput); // revert if baseBalance<baseReserve
+            ) = querySellBase(msg.sender, baseInput); // revert if baseBalance<baseReserve
             require(uint256(_QUOTE_RESERVE_).sub(quoteBalance) <= receiveQuoteAmount, "FLASH_LOAN_FAILED");
 
             _transferQuoteOut(_MAINTAINER_, mtFee);

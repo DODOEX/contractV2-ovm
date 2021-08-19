@@ -6,10 +6,13 @@
 
 pragma solidity 0.7.6;
 
-interface IERC20 {
-    function transfer(address recipient, uint256 amount) external returns (bool);
-    function balanceOf(address account) external view returns (uint256);
-}
+import {SafeERC20} from "./lib/SafeERC20.sol";
+import {IERC20} from "./intf/IERC20.sol";
+
+// interface IERC20 {
+//     function transfer(address recipient, uint256 amount) external returns (bool);
+//     function balanceOf(address account) external view returns (uint256);
+// }
 
 //wrong
 //msg.value
@@ -19,13 +22,19 @@ interface IERC20 {
 contract OpTest {
     address public _ETH_ADDRESS_ = 0x4200000000000000000000000000000000000006;
     
-    function ETHToToken()
+    function ETHToToken(address aim)
         external
         payable
     {
         uint256 ethBalance = IERC20(_ETH_ADDRESS_).balanceOf(address(this));
-        IERC20(_ETH_ADDRESS_).transfer(0xbC7814de9e42945C9fFd89D2BFff1a45e07Bdb10, ethBalance);
+        IERC20(_ETH_ADDRESS_).transfer(aim, ethBalance);
     }
+
+    function SafeETH(address aim) external payable {
+        uint256 ethBalance = IERC20(_ETH_ADDRESS_).balanceOf(address(this));
+        SafeERC20.safeTransfer(IERC20(_ETH_ADDRESS_), aim, ethBalance);
+    }
+
 
     //wrong
     // function ETH2ToToken()

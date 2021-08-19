@@ -5,27 +5,14 @@
 
 pragma solidity 0.7.6;
 
-import {IDODOApproveProxy} from "../DODOApproveProxy.sol";
+import {IDODOApproveProxy} from "../intf/IDODOApproveProxy.sol";
 import {IDODOV2} from "./../intf/IDODOV2.sol";
 import {IERC20} from "../../intf/IERC20.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
-import {IWETH} from "../../intf/IWETH.sol";
 import {SafeMath} from "../../lib/SafeMath.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
 import {ReentrancyGuard} from "../../lib/ReentrancyGuard.sol";
-
-interface IDPPOracle {
-    function reset(
-        address assetTo,
-        uint256 newLpFeeRate,
-        uint256 newK,
-        uint256 baseOutAmount,
-        uint256 quoteOutAmount,
-        uint256 minBaseReserve,
-        uint256 minQuoteReserve
-    ) external returns (bool);
-}
-
+import {IDPPOracle} from "../../DODOPrivatePool/intf/IDPPOracle.sol";
 
 /**
  * @title DODODppProxy
@@ -39,8 +26,7 @@ contract DODODppProxy is ReentrancyGuard {
 
     // ============ Storage ============
 
-    address constant _ETH_ADDRESS_ = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address public immutable _WETH_;
+    address constant _ETH_ = 0x4200000000000000000000000000000000000006;
     address public immutable _DODO_APPROVE_PROXY_;
 
     // ============ Modifiers ============
@@ -55,10 +41,8 @@ contract DODODppProxy is ReentrancyGuard {
     receive() external payable {}
 
     constructor(
-        address payable weth,
         address dodoApproveProxy
     ) {
-        _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
     }
 
@@ -96,9 +80,6 @@ contract DODODppProxy is ReentrancyGuard {
             minBaseReserve,
             minQuoteReserve
         ), "Reset Failed");
-
-        _withdraw(msg.sender, IDODOV2(dppAddress)._BASE_TOKEN_(), amountList[2], flag == 3);
-        _withdraw(msg.sender, IDODOV2(dppAddress)._QUOTE_TOKEN_(), amountList[3], flag == 4);
     }
 
 
@@ -113,29 +94,11 @@ contract DODODppProxy is ReentrancyGuard {
     ) internal {
         if (isETH) {
             if (amount > 0) {
-                IWETH(_WETH_).deposit{value: amount}();
-                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_WETH_), to, amount);
+                // IWETH(_WETH_).deposit{value: amount}();
+                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_ETH_), to, amount);
             }
         } else {
             IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(token, from, to, amount);
-        }
-    }
-
-    function _withdraw(
-        address payable to,
-        address token,
-        uint256 amount,
-        bool isETH
-    ) internal {
-        if (isETH) {
-            if (amount > 0) {
-                IWETH(_WETH_).withdraw(amount);
-                to.transfer(amount);
-            }
-        } else {
-            if (amount > 0) {
-                SafeERC20.safeTransfer(IERC20(token), to, amount);
-            }
         }
     }
 }

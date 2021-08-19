@@ -19,7 +19,7 @@ contract CPStorage is InitializableOwnable, ReentrancyGuard {
     using SafeMath for uint256;
 
     // ============ Constant ============
-    
+    address constant _ETH_ = 0x4200000000000000000000000000000000000006;
     uint256 internal constant _SETTLEMENT_EXPIRE_ = 86400 * 7;
     uint256 internal constant _SETTEL_FUND_ = 2e17;
     bool public _IS_OPEN_TWAP_ = false;

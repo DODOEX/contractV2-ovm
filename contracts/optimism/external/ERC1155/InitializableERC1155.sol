@@ -20,12 +20,12 @@ contract InitializableERC1155 is ERC1155 {
     function init(
         address creator,
         uint256 amount,
-        string memory uri
+        string memory _uri
     ) public {
         require(!_INITIALIZED_, "INITIALIZED");
         _INITIALIZED_ = true;
         _mint(creator, 0, amount ,"");
-        _setTokenURI(0, uri);
+        _setTokenURI(0, _uri);
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {

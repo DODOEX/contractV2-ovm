@@ -11,17 +11,7 @@ pragma experimental ABIEncoderV2;
 import {InitializableOwnable} from "../../lib/InitializableOwnable.sol";
 import {IDVM} from "../../DODOVendingMachine/intf/IDVM.sol";
 import {IFragment} from "../../GeneralizedFragment/intf/IFragment.sol";
-
-interface IDODONFTRegistry {
-    function addRegistry(
-        address vault,
-        address fragment, 
-        address quoteToken,
-        address dvm
-    ) external;
-
-    function removeRegistry(address fragment) external;
-}
+import {IDODONFTRegistry} from "../../intf/IDODONFTRegistry.sol";
 
 /**
  * @title DODONFT Registry

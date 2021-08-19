@@ -7,15 +7,14 @@
 
 pragma solidity 0.7.6;
 
-import {IDODOApproveProxy} from "../DODOApproveProxy.sol";
+import {IDODOApproveProxy} from "../intf/IDODOApproveProxy.sol";
 import {ICloneFactory} from "../../lib/CloneFactory.sol";
 import {IERC20} from "../../intf/IERC20.sol";
-import {IWETH} from "../../intf/IWETH.sol";
 import {InitializableOwnable} from "../../lib/InitializableOwnable.sol";
 import {ICollateralVault} from "../../CollateralVault/intf/ICollateralVault.sol";
 import {IDVM} from "../../DODOVendingMachine/intf/IDVM.sol";
 import {IFragment} from "../../GeneralizedFragment/intf/IFragment.sol";
-import {IDODONFTRegistry} from "../../Factory/Registries/DODONFTRegistry.sol";
+import {IDODONFTRegistry} from "../../intf/IDODONFTRegistry.sol";
 import {SafeMath} from "../../lib/SafeMath.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
 import {DecimalMath} from "../../lib/DecimalMath.sol";
@@ -34,8 +33,7 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
 
     // ============ Storage ============
 
-    address constant _ETH_ADDRESS_ = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address public immutable _WETH_;
+    address constant _ETH_ = 0x4200000000000000000000000000000000000006;
     address public immutable _DODO_APPROVE_PROXY_;
     address public immutable _CLONE_FACTORY_;
     address public immutable _NFT_REGISTY_;
@@ -71,7 +69,6 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
 
     constructor(
         address cloneFactory,
-        address payable weth,
         address dodoApproveProxy,
         address defaultMaintainer,
         address buyoutModel,
@@ -82,7 +79,6 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
         address nftRegistry
     ) {
         _CLONE_FACTORY_ = cloneFactory;
-        _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
         _DEFAULT_MAINTAINER_ = defaultMaintainer;
         _MT_FEE_RATE_MODEL_ = mtFeeRateModel;
@@ -106,7 +102,7 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
         string memory fragSymbol
     ) external returns (address newFragment, address newDvm) {
         newFragment = ICloneFactory(_CLONE_FACTORY_).clone(_FRAG_TEMPLATE_);
-        address _quoteToken = addrList[0] == _ETH_ADDRESS_ ? _WETH_ : addrList[0];
+        address _quoteToken = addrList[0];
         
         {
         uint256[] memory  _params = params;
@@ -149,8 +145,9 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
         uint8 flag, // 0 - ERC20, 1 - quoteInETH
         uint256 deadLine
     ) external payable preventReentrant judgeExpired(deadLine) {
-        if(flag == 0)
-            require(msg.value == 0, "DODONFTProxy: WE_SAVED_YOUR_MONEY");
+        uint256 msgValue = IERC20(_ETH_).balanceOf(address(this));
+        // if(flag == 0)
+        //     require(msgValue == 0, "DODONFTProxy: WE_SAVED_YOUR_MONEY");
         
         address dvm = IFragment(fragment)._DVM_();
         uint256 fragTotalSupply = IFragment(fragment).totalSupply();
@@ -166,7 +163,7 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
         IDODONFTRegistry(_NFT_REGISTY_).removeRegistry(fragment);
 
         // refund dust eth
-        if (flag == 1 && msg.value > curRequireQuote) msg.sender.transfer(msg.value - curRequireQuote);
+        if (flag == 1 && msgValue > curRequireQuote) IERC20(_ETH_).transfer(msg.sender, msgValue - curRequireQuote);
 
         emit Buyout(msg.sender, fragment, curRequireQuote);
     }
@@ -214,8 +211,8 @@ contract DODONFTProxy is ReentrancyGuard, InitializableOwnable {
     ) internal {
         if (isETH) {
             if (amount > 0) {
-                IWETH(_WETH_).deposit{value: amount}();
-                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_WETH_), to, amount);
+                // IWETH(_WETH_).deposit{value: amount}();
+                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_ETH_), to, amount);
             }
         } else {
             IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(token, from, to, amount);

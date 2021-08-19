@@ -13,10 +13,9 @@ import {SafeERC20} from "../../lib/SafeERC20.sol";
 import {DecimalMath} from "../../lib/DecimalMath.sol";
 import {IERC20} from "../../intf/IERC20.sol";
 import {IDVM} from "../../DODOVendingMachine/intf/IDVM.sol";
-import {IDVMFactory} from "../../Factory/DVMFactory.sol";
+import {IDVMFactory} from "../../intf/IDVMFactory.sol";
 import {CPStorage} from "./CPStorage.sol";
 import {PMMPricing} from "../../lib/PMMPricing.sol";
-import {IDODOCallee} from "../../intf/IDODOCallee.sol";
 
 contract CPFunding is CPStorage {
     using SafeMath for uint256;
@@ -44,15 +43,11 @@ contract CPFunding is CPStorage {
         emit Bid(to, input, mtFee);
     }
 
-    function cancel(address to, uint256 amount, bytes calldata data) external phaseBidOrCalm preventReentrant {
+    function cancel(address to, uint256 amount, bytes calldata) external phaseBidOrCalm preventReentrant {
         require(_SHARES_[msg.sender] >= amount, "SHARES_NOT_ENOUGH");
         _burnShares(msg.sender, amount);
         _transferQuoteOut(to, amount);
         _sync();
-
-        if(data.length > 0){
-            IDODOCallee(to).CPCancelCall(msg.sender,amount,data);
-        }
 
         emit Cancel(msg.sender,amount);
     }
@@ -88,6 +83,7 @@ contract CPFunding is CPStorage {
         }
 
         _POOL_ = IDVMFactory(_POOL_FACTORY_).createDODOVendingMachine(
+            msg.sender,
             _poolBaseToken,
             _poolQuoteToken,
             3e15, // 0.3% lp feeRate
@@ -104,7 +100,7 @@ contract CPFunding is CPStorage {
 
         (_TOTAL_LP_AMOUNT_, ,) = IDVM(_POOL_).buyShares(address(this));
 
-        msg.sender.transfer(_SETTEL_FUND_);
+        IERC20(_ETH_).transfer(msg.sender, _SETTEL_FUND_);
 
         emit Settle();
     }
@@ -126,13 +122,22 @@ contract CPFunding is CPStorage {
 
     function getSettleResult() public view returns (uint256 poolBase, uint256 poolQuote, uint256 poolI, uint256 unUsedBase, uint256 unUsedQuote) {
         poolQuote = _QUOTE_TOKEN_.balanceOf(address(this));
+        if(_QUOTE_TOKEN_ == IERC20(_ETH_)) {
+           poolQuote = poolQuote.sub(_SETTEL_FUND_);
+        }
+
         if (poolQuote > _POOL_QUOTE_CAP_) {
             poolQuote = _POOL_QUOTE_CAP_;
         }
         (uint256 soldBase,) = PMMPricing.sellQuoteToken(_getPMMState(), poolQuote);
         poolBase = _TOTAL_BASE_.sub(soldBase);
 
-        unUsedQuote = _QUOTE_TOKEN_.balanceOf(address(this)).sub(poolQuote);
+        if(_QUOTE_TOKEN_ == IERC20(_ETH_)) {
+            unUsedQuote = _QUOTE_TOKEN_.balanceOf(address(this)).sub(_SETTEL_FUND_).sub(poolQuote);
+        } else {
+            unUsedQuote = _QUOTE_TOKEN_.balanceOf(address(this)).sub(poolQuote);
+        }
+    
         unUsedBase = _BASE_TOKEN_.balanceOf(address(this)).sub(poolBase);
 
         // Try to make midPrice equal to avgPrice

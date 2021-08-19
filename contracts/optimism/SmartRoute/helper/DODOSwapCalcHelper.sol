@@ -8,7 +8,7 @@
 pragma solidity 0.7.6;
 
 import {IDODOV1} from "../intf/IDODOV1.sol";
-import {IDODOSellHelper} from "./DODOSellHelper.sol";
+import {IDODOSellHelper} from "../intf/IDODOSellHelper.sol";
 
 contract DODOSwapCalcHelper {
     address public immutable _DODO_SELL_HELPER_;

@@ -8,8 +8,10 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
+import {SafeMath} from "../lib/SafeMath.sol";
 import {ICloneFactory} from "../lib/CloneFactory.sol";
 import {InitializableOwnable} from "../lib/InitializableOwnable.sol";
+import {IERC20} from "../intf/IERC20.sol";
 
 interface IStdERC20 {
     function init(
@@ -42,8 +44,11 @@ interface ICustomERC20 {
  * @notice Help user to create erc20 token
  */
 contract ERC20V2Factory is InitializableOwnable {
-    // ============ Templates ============
+    using SafeMath for uint256;
 
+    // ============ Templates ============
+    address public _ETH_ = 0x4200000000000000000000000000000000000006;
+    uint256 public _ETH_RESERVE_;
     address public immutable _CLONE_FACTORY_;
     address public _ERC20_TEMPLATE_;
     address public _CUSTOM_ERC20_TEMPLATE_;
@@ -84,10 +89,14 @@ contract ERC20V2Factory is InitializableOwnable {
         string memory symbol,
         uint8 decimals
     ) external payable returns (address newERC20) {
-        require(msg.value >= _CREATE_FEE_, "CREATE_FEE_NOT_ENOUGH");
+        uint256 currentETH = IERC20(_ETH_).balanceOf(address(this));
+        require(currentETH.sub(_ETH_RESERVE_) >= _CREATE_FEE_, "CREATE_FEE_NOT_ENOUGH");
+
         newERC20 = ICloneFactory(_CLONE_FACTORY_).clone(_ERC20_TEMPLATE_);
         IStdERC20(newERC20).init(msg.sender, totalSupply, name, symbol, decimals);
         _USER_STD_REGISTRY_[msg.sender].push(newERC20);
+
+        _ETH_RESERVE_ = currentETH;
         emit NewERC20(newERC20, msg.sender, 0);
     }
 
@@ -101,7 +110,8 @@ contract ERC20V2Factory is InitializableOwnable {
         address teamAccount,
         bool isMintable
     ) external payable returns (address newCustomERC20) {
-        require(msg.value >= _CREATE_FEE_, "CREATE_FEE_NOT_ENOUGH");
+        uint256 currentETH = IERC20(_ETH_).balanceOf(address(this));
+        require(currentETH.sub(_ETH_RESERVE_) >= _CREATE_FEE_, "CREATE_FEE_NOT_ENOUGH");
         newCustomERC20 = ICloneFactory(_CLONE_FACTORY_).clone(_CUSTOM_ERC20_TEMPLATE_);
 
         ICustomERC20(newCustomERC20).init(
@@ -116,6 +126,7 @@ contract ERC20V2Factory is InitializableOwnable {
             isMintable
         );
 
+        _ETH_RESERVE_ = currentETH;
         _USER_CUSTOM_REGISTRY_[msg.sender].push(newCustomERC20);
         if(isMintable)
             emit NewERC20(newCustomERC20, msg.sender, 2);
@@ -140,8 +151,10 @@ contract ERC20V2Factory is InitializableOwnable {
     }
 
     function withdraw() external onlyOwner {
-        uint256 amount = address(this).balance;
-        msg.sender.transfer(amount);
+        uint256 amount = IERC20(_ETH_).balanceOf(address(this));
+        IERC20(_ETH_).transfer(msg.sender, amount);
+
+        _ETH_RESERVE_ = 0;
         emit Withdraw(msg.sender, amount);
     }
 

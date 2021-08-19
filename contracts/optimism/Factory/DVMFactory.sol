@@ -12,17 +12,6 @@ import {InitializableOwnable} from "../lib/InitializableOwnable.sol";
 import {ICloneFactory} from "../lib/CloneFactory.sol";
 import {IDVM} from "../DODOVendingMachine/intf/IDVM.sol";
 
-interface IDVMFactory {
-    function createDODOVendingMachine(
-        address baseToken,
-        address quoteToken,
-        uint256 lpFeeRate,
-        uint256 i,
-        uint256 k,
-        bool isOpenTWAP
-    ) external returns (address newVendingMachine);
-}
-
 
 /**
  * @title DODO VendingMachine Factory
@@ -71,6 +60,7 @@ contract DVMFactory is InitializableOwnable {
     }
 
     function createDODOVendingMachine(
+        address creator,
         address baseToken,
         address quoteToken,
         uint256 lpFeeRate,
@@ -92,8 +82,8 @@ contract DVMFactory is InitializableOwnable {
             );
         }
         _REGISTRY_[baseToken][quoteToken].push(newVendingMachine);
-        _USER_REGISTRY_[tx.origin].push(newVendingMachine);
-        emit NewDVM(baseToken, quoteToken, tx.origin, newVendingMachine);
+        _USER_REGISTRY_[creator].push(newVendingMachine);
+        emit NewDVM(baseToken, quoteToken, creator, newVendingMachine);
     }
 
     // ============ Admin Operation Functions ============

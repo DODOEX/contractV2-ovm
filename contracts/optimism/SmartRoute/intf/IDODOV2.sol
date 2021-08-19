@@ -40,6 +40,7 @@ interface IDODOV2 {
     //========== DODOVendingMachine ========
     
     function createDODOVendingMachine(
+        address creator,
         address baseToken,
         address quoteToken,
         uint256 lpFeeRate,

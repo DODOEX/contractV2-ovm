@@ -8,9 +8,8 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
-import {IDODOApproveProxy} from "../DODOApproveProxy.sol";
+import {IDODOApproveProxy} from "../intf/IDODOApproveProxy.sol";
 import {IERC20} from "../../intf/IERC20.sol";
-import {IWETH} from "../../intf/IWETH.sol";
 import {SafeMath} from "../../lib/SafeMath.sol";
 import {UniversalERC20} from "../lib/UniversalERC20.sol";
 import {SafeERC20} from "../../lib/SafeERC20.sol";
@@ -28,9 +27,7 @@ contract DODORouteProxy {
     using UniversalERC20 for IERC20;
 
     // ============ Storage ============
-
-    address constant _ETH_ADDRESS_ = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address public immutable _WETH_;
+    address constant _ETH_ = 0x4200000000000000000000000000000000000006;
     address public immutable _DODO_APPROVE_PROXY_;
 
     struct PoolInfo {
@@ -64,10 +61,8 @@ contract DODORouteProxy {
     receive() external payable {}
 
     constructor (
-        address payable weth,
         address dodoApproveProxy
     ) {
-        _WETH_ = weth;
         _DODO_APPROVE_PROXY_ = dodoApproveProxy;
     }
 
@@ -92,9 +87,9 @@ contract DODORouteProxy {
         address _toToken = toToken;
         uint256 _fromTokenAmount = fromTokenAmount;
         
-        uint256 toTokenOriginBalance = IERC20(_toToken).universalBalanceOf(msg.sender);
+        uint256 toTokenOriginBalance = IERC20(_toToken).balanceOf(msg.sender);
         
-        _deposit(msg.sender, assetTo[0], _fromToken, _fromTokenAmount, _fromToken == _ETH_ADDRESS_);
+        _deposit(msg.sender, assetTo[0], _fromToken, _fromTokenAmount, _fromToken == _ETH_);
 
         for (uint256 i = 0; i < mixPairs.length; i++) {
             if (directions & 1 == 0) {
@@ -105,12 +100,11 @@ contract DODORouteProxy {
             directions = directions >> 1;
         }
 
-        if(_toToken == _ETH_ADDRESS_) {
-            returnAmount = IWETH(_WETH_).balanceOf(address(this));
-            IWETH(_WETH_).withdraw(returnAmount);
-            msg.sender.transfer(returnAmount);
+        if(_toToken == _ETH_) {
+            returnAmount = IERC20(_ETH_).balanceOf(address(this));
+            IERC20(_ETH_).transfer(msg.sender,returnAmount);
         }else {
-            returnAmount = IERC20(_toToken).tokenBalanceOf(msg.sender).sub(toTokenOriginBalance);
+            returnAmount = IERC20(_toToken).balanceOf(msg.sender).sub(toTokenOriginBalance);
         }
 
         require(returnAmount >= minReturnAmount, "DODORouteProxy: Return amount is not enough");
@@ -141,17 +135,16 @@ contract DODORouteProxy {
         address fromToken = midToken[0];
         address toToken = midToken[midToken.length - 1];
 
-        uint256 toTokenOriginBalance = IERC20(toToken).universalBalanceOf(msg.sender);
-        _deposit(msg.sender, assetFrom[0], fromToken, _fromTokenAmount, fromToken == _ETH_ADDRESS_);
+        uint256 toTokenOriginBalance = IERC20(toToken).balanceOf(msg.sender);
+        _deposit(msg.sender, assetFrom[0], fromToken, _fromTokenAmount, fromToken == _ETH_);
 
         _multiSwap(totalWeight, midToken, splitNumber, sequence, assetFrom);
     
-        if(toToken == _ETH_ADDRESS_) {
-            returnAmount = IWETH(_WETH_).balanceOf(address(this));
-            IWETH(_WETH_).withdraw(returnAmount);
-            msg.sender.transfer(returnAmount);
+        if(toToken == _ETH_) {
+            returnAmount = IERC20(_ETH_).balanceOf(address(this));
+            IERC20(_ETH_).transfer(msg.sender,returnAmount);
         }else {
-            returnAmount = IERC20(toToken).tokenBalanceOf(msg.sender).sub(toTokenOriginBalance);
+            returnAmount = IERC20(toToken).balanceOf(msg.sender).sub(toTokenOriginBalance);
         }
 
         require(returnAmount >= minReturnAmount, "DODORouteProxy: Return amount is not enough");
@@ -177,7 +170,7 @@ contract DODORouteProxy {
     ) internal { 
         for(uint256 i = 1; i < splitNumber.length; i++) { 
             // define midtoken address, ETH -> WETH address
-            uint256 curTotalAmount = IERC20(midToken[i]).tokenBalanceOf(assetFrom[i-1]);
+            uint256 curTotalAmount = IERC20(midToken[i]).balanceOf(assetFrom[i-1]);
             uint256 curTotalWeight = totalWeight[i-1];
             
             for(uint256 j = splitNumber[i-1]; j < splitNumber[i]; j++) {
@@ -223,8 +216,8 @@ contract DODORouteProxy {
     ) internal {
         if (isETH) {
             if (amount > 0) {
-                IWETH(_WETH_).deposit{value: amount}();
-                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_WETH_), to, amount);
+                // IWETH(_WETH_).deposit{value: amount}();
+                if (to != address(this)) SafeERC20.safeTransfer(IERC20(_ETH_), to, amount);
             }
         } else {
             IDODOApproveProxy(_DODO_APPROVE_PROXY_).claimTokens(token, from, to, amount);

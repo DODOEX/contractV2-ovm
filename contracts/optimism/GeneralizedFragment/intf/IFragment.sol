@@ -14,7 +14,7 @@ interface IFragment {
       address dvm, 
       address vaultPreOwner,
       address collateralVault,
-      uint256 totalSupply, 
+      uint256 _totalSupply, 
       uint256 ownerRatio,
       uint256 buyoutTimestamp,
       address defaultMaintainer,

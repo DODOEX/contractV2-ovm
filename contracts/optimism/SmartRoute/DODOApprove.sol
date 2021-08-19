@@ -22,8 +22,8 @@ contract DODOApprove is InitializableOwnable {
     using SafeERC20 for IERC20;
     
     // ============ Storage ============
-    uint256 private constant _TIMELOCK_DURATION_ = 3 days;
-    uint256 private constant _TIMELOCK_EMERGENCY_DURATION_ = 24 hours;
+    uint256 private constant _TIMELOCK_DURATION_ = 3 * 60 * 60 * 24;
+    uint256 private constant _TIMELOCK_EMERGENCY_DURATION_ = 60 * 60 * 24;
     uint256 public _TIMELOCK_;
     address public _PENDING_DODO_PROXY_;
     address public _DODO_PROXY_;

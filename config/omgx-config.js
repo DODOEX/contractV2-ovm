@@ -1,26 +1,22 @@
 module.exports = {
     OMGX_CONFIG: {
-        //TOKEN
-        WETH: "",
-        CHI: "0x0000000000000000000000000000000000000000",
-        DODO: "",
-
         //DODOV1
         // DODOV1: "",
         // DODOZoo: "",
 
         //Helper
         DODOSellHelper: "",
-        DODOCalleeHelper: "",
         DODOV1PmmHelper: "",
         DODOV2RouteHelper: "",
-        // ERC20Helper: "",
-        // DODOSwapCalcHelper: "",
-        // multiCall: "",
+        ERC20Helper: "",
+        DODOSwapCalcHelper: "",
+        MultiCall: "",
 
         //Template
-        CloneFactory: "",
+        // CloneFactory: "",
+        ProxyFactory: "",
         FeeRateModel: "",
+        FeeRateDIP3: "",
         PermissionManager: "",
         DVM: "",
         DPP: "",
@@ -31,7 +27,6 @@ module.exports = {
         ERC20MineV3: "",
 
         ERC20: "",
-        MintableERC20: "",
         CustomERC20: "",
 
         //Factory
@@ -42,7 +37,7 @@ module.exports = {
         CrowdPoolingFactory: "",
         ERC20V2Factory: "",
         DODOMineV3Registry: "",
-        // DODOMineV2Factory: "",
+        DODOMineV2Factory: "",
 
         //Approve
         DODOApprove: "",
@@ -80,17 +75,6 @@ module.exports = {
         DodoNftErc1155: "",
 
         DODONFTRegistry: "",
-        DODONFTProxy: "",
-
-        //================= DropsV1 =================
-        MysteryBoxV1: "",
-        RandomGenerator: "",
-        RandomPool: [
-            "",
-        ],
-
-        //================= DropsV2 ==================
-        DropsFeeModel: "",
-        DropsProxy: ""
+        DODONFTProxy: ""
     }
 }

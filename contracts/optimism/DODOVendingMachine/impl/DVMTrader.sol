@@ -46,7 +46,7 @@ contract DVMTrader is DVMVault {
         uint256 baseBalance = _BASE_TOKEN_.balanceOf(address(this));
         uint256 baseInput = baseBalance.sub(uint256(_BASE_RESERVE_));
         uint256 mtFee;
-        (receiveQuoteAmount, mtFee) = querySellBase(tx.origin, baseInput);
+        (receiveQuoteAmount, mtFee) = querySellBase(msg.sender, baseInput);
 
         _transferQuoteOut(to, receiveQuoteAmount);
         _transferQuoteOut(_MAINTAINER_, mtFee);
@@ -70,7 +70,7 @@ contract DVMTrader is DVMVault {
         uint256 quoteBalance = _QUOTE_TOKEN_.balanceOf(address(this));
         uint256 quoteInput = quoteBalance.sub(uint256(_QUOTE_RESERVE_));
         uint256 mtFee;
-        (receiveBaseAmount, mtFee) = querySellQuote(tx.origin, quoteInput);
+        (receiveBaseAmount, mtFee) = querySellQuote(msg.sender, quoteInput);
 
         _transferBaseOut(to, receiveBaseAmount);
         _transferBaseOut(_MAINTAINER_, mtFee);
@@ -110,7 +110,7 @@ contract DVMTrader is DVMVault {
         // sell quote
         if (baseBalance < _BASE_RESERVE_) {
             uint256 quoteInput = quoteBalance.sub(uint256(_QUOTE_RESERVE_));
-            (uint256 receiveBaseAmount, uint256 mtFee) = querySellQuote(tx.origin, quoteInput);
+            (uint256 receiveBaseAmount, uint256 mtFee) = querySellQuote(msg.sender, quoteInput);
             require(uint256(_BASE_RESERVE_).sub(baseBalance) <= receiveBaseAmount, "FLASH_LOAN_FAILED");
 
             _transferBaseOut(_MAINTAINER_, mtFee);
@@ -127,7 +127,7 @@ contract DVMTrader is DVMVault {
         // sell base
         if (quoteBalance < _QUOTE_RESERVE_) {
             uint256 baseInput = baseBalance.sub(uint256(_BASE_RESERVE_));
-            (uint256 receiveQuoteAmount, uint256 mtFee) = querySellBase(tx.origin, baseInput);
+            (uint256 receiveQuoteAmount, uint256 mtFee) = querySellBase(msg.sender, baseInput);
             require(uint256(_QUOTE_RESERVE_).sub(quoteBalance) <= receiveQuoteAmount, "FLASH_LOAN_FAILED");
 
             _transferQuoteOut(_MAINTAINER_, mtFee);
