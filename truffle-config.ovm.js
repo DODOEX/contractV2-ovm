@@ -20,7 +20,7 @@ module.exports = {
   contracts_directory: './contracts/optimism',
 
   deploySwitch: {
-    TEST: false,
+    TEST:      false,
     DEPLOY_V2: false,
   },
 
